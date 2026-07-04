@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Build / run Plash from the command line.
+# Build / run Webpaper from the command line.
 #
-# Plash's source was restored from the last open-source revision, so it builds
+# Webpaper's source was restored from the last open-source revision, so it builds
 # with a standard Xcode install (Xcode 16+ recommended; tested with Xcode 27).
 #
 # Usage:
@@ -20,8 +20,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-PROJECT="Plash.xcodeproj"
-SCHEME="Plash"
+PROJECT="Webpaper.xcodeproj"
+SCHEME="Webpaper"
 DERIVED_DATA="${DERIVED_DATA:-./.build-dd}"
 ACTION="${1:-build}"
 CONFIG="Debug"
@@ -82,14 +82,14 @@ case "$ACTION" in
 		xcodebuild "${common_args[@]}" \
 			CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
 			build
-		echo "Built: $DERIVED_DATA/Build/Products/$CONFIG/Plash.app"
+		echo "Built: $DERIVED_DATA/Build/Products/$CONFIG/Webpaper.app"
 		;;
 	run)
 		# Ad-hoc sign so the sandboxed app can launch locally.
 		xcodebuild "${common_args[@]}" \
 			CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
 			build
-		app="$DERIVED_DATA/Build/Products/$CONFIG/Plash.app"
+		app="$DERIVED_DATA/Build/Products/$CONFIG/Webpaper.app"
 		echo "Launching $app"
 		open "$app"
 		;;

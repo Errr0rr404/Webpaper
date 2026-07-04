@@ -10,7 +10,7 @@ final class ShareController: ExtensionController {
 		}
 
 		var components = URLComponents()
-		components.scheme = "plash"
+		components.scheme = "webpaper"
 		components.path = "add"
 
 		components.queryItems = [
