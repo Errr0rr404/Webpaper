@@ -12,7 +12,7 @@
 </div>
 
 > [!NOTE]
-> **Unofficial community build.** This is a personal fork of [Plash](https://sindresorhus.com/plash) by [Sindre Sorhus](https://sindresorhus.com). The source was restored from Plash's last open-source release (v2.16.0, MIT-licensed) and extended with extra features — see [What's new in this build](#whats-new-in-this-build). It is **not** affiliated with or endorsed by the original author. For the official, actively-maintained app, get it from [sindresorhus.com/plash](https://sindresorhus.com/plash) or the [Mac App Store](https://apps.apple.com/app/id1494023538) — and please support his work.
+> **Unofficial personal fork — source only.** This repository restores [Plash](https://sindresorhus.com/plash)'s last open-source release (v2.16.0, MIT-licensed) and adds the features in [What's new in this build](#whats-new-in-this-build), for personal use built from source. It is **not** affiliated with or endorsed by the author, and **no prebuilt app is distributed here**. Plash is created by [Sindre Sorhus](https://sindresorhus.com) — for the real, maintained app, get the [official version](https://sindresorhus.com/plash) or the [Mac App Store](https://apps.apple.com/app/id1494023538) and please support his work.
 
 Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper. You can even add multiple websites and easily switch between them.
 
@@ -54,21 +54,11 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Download
 
-**[⬇ Download this community build](https://github.com/Errr0rr404/Plash/releases/latest/download/Plash.zip)**  ·  requires **macOS 15.2 (Sequoia) or later**
-
-This build is signed with a Developer ID but **not notarized by Apple**, so Gatekeeper blocks the first launch. To open it the first time:
-
-1. Unzip and move **Plash.app** into your **Applications** folder.
-2. **Right-click** (or Control-click) the app → **Open** → **Open** in the dialog.
-   _(Or: System Settings → Privacy & Security → scroll down → “Open Anyway”.)_
-
-You only need to do this once. Prefer to compile it yourself? See [Build from source](#build-from-source).
-
-### Official app
-
-For the original — notarized and actively maintained — get it from the Mac App Store:
+Get the official Plash — actively maintained and notarized — from the Mac App Store:
 
 [![](https://sindresorhus.com/assets/download-on-app-store-badge.svg)](https://apps.apple.com/app/id1494023538)
+
+This fork does **not** ship a prebuilt binary. To try its extra features, [build it from source](#build-from-source) for your own use.
 
 ## What's new in this build
 

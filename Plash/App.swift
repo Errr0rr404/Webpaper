@@ -38,7 +38,7 @@ struct AppMain: App {
 			"NSApplicationCrashOnExceptions": true
 		])
 
-		SSApp.initSentry("https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750")
+		// Crash reporting intentionally disabled in this fork: the original build shipped the upstream author's private Sentry DSN, and no build of this fork should report to their account.
 		SSApp.setUpExternalEventListeners()
 		ProcessInfo.processInfo.disableAutomaticTermination("")
 		ProcessInfo.processInfo.disableSuddenTermination()
