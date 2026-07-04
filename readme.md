@@ -11,6 +11,9 @@
 	<br>
 </div>
 
+> [!NOTE]
+> **Unofficial community build.** This is a personal fork of [Plash](https://sindresorhus.com/plash) by [Sindre Sorhus](https://sindresorhus.com). The source was restored from Plash's last open-source release (v2.16.0, MIT-licensed) and extended with extra features — see [What's new in this build](#whats-new-in-this-build). It is **not** affiliated with or endorsed by the original author. For the official, actively-maintained app, get it from [sindresorhus.com/plash](https://sindresorhus.com/plash) or the [Mac App Store](https://apps.apple.com/app/id1494023538) — and please support his work.
+
 Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper. You can even add multiple websites and easily switch between them.
 
 ## Use-cases
@@ -35,7 +38,8 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Interact with the website (“Browsing Mode”)
 - Automatically reload the website at a custom interval
 - Add multiple websites
-- Show the website on a different display
+- Show the website on one display, or on every display — with a different website per display
+- Fade the website in on load
 - Invert website colors (fake dark mode)
 - Add custom CSS and JavaScript to the website
 - Lower the opacity
@@ -50,23 +54,33 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Download
 
+**[⬇ Download this community build](https://github.com/Errr0rr404/Plash/releases/latest/download/Plash.zip)**  ·  requires **macOS 15.2 (Sequoia) or later**
+
+This build is signed with a Developer ID but **not notarized by Apple**, so Gatekeeper blocks the first launch. To open it the first time:
+
+1. Unzip and move **Plash.app** into your **Applications** folder.
+2. **Right-click** (or Control-click) the app → **Open** → **Open** in the dialog.
+   _(Or: System Settings → Privacy & Security → scroll down → “Open Anyway”.)_
+
+You only need to do this once. Prefer to compile it yourself? See [Build from source](#build-from-source).
+
+### Official app
+
+For the original — notarized and actively maintained — get it from the Mac App Store:
+
 [![](https://sindresorhus.com/assets/download-on-app-store-badge.svg)](https://apps.apple.com/app/id1494023538)
 
-Requires macOS 15 or later.
+## What's new in this build
 
-**Older versions**
+On top of the 2.16.0 source, this fork implements the most-requested community features:
 
-- [2.15.0](https://github.com/user-attachments/files/18840646/Plash.2.15.0.-.macOS.14.zip) for macOS 14+
-- [2.14.1](https://github.com/sindresorhus/Plash/releases/download/v2.14.1/Plash.2.14.1.-.macOS.13.zip) for macOS 13+
-- [2.12.1](https://github.com/sindresorhus/Plash/releases/download/v2.12.1/Plash.2.12.1.-.macOS.12.zip) for macOS 12+
-- [2.10.1](https://github.com/sindresorhus/Plash/releases/download/v2.10.1/Plash.2.10.1.-.macOS.11.zip) for macOS 11+
-- [2.1.0](https://github.com/sindresorhus/Plash/releases/download/v2.1.0/Plash.2.1.1.-.macOS.10.15.zip) for macOS 10.15+
+- **Multi-display support** — show your website on **every** connected display, not just one ([#2](https://github.com/sindresorhus/Plash/issues/2)). Displays that are connected, disconnected, or reconnected (e.g. docking/undocking) are handled without disturbing the others.
+- **A website per display** — in “Show on all displays” mode, assign each display its own website, complete with its own custom CSS/JS and settings.
+- **Fade in on load** — the website fades in smoothly instead of appearing abruptly ([#9](https://github.com/sindresorhus/Plash/issues/9)).
+- **“Reload when the computer wakes” toggle** — turn it off to keep page state across sleep ([#127](https://github.com/sindresorhus/Plash/issues/127)).
+- **Retain scroll position across reloads** ([#39](https://github.com/sindresorhus/Plash/issues/39)).
 
-**Non-App Store version**
-
-A special version for users that cannot access the App Store. It won't receive automatic updates. I will update it here once a year.
-
-[Download](https://github.com/user-attachments/files/18840560/Plash.2.16.0.zip) *(2.16.0 · macOS 15+)*
+Built and verified against **Xcode 27**. See [Build from source](#build-from-source) to compile it yourself.
 
 ## Tips
 
@@ -248,9 +262,7 @@ Plash can be automated with the built-in Shortcuts app, for example, using the �
 
 #### Does it support multiple displays?
 
-Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is [planned](https://github.com/sindresorhus/Plash/issues/2).
-
-However, I there is a [workaround](https://github.com/sindresorhus/Plash/issues/2#issuecomment-653891524).
+Yes. Enable “Show on all displays” in the settings to render the website on every connected display. You can also assign each display its own website from the “Website per display” section.
 
 #### Why does Plash use so much memory?
 
@@ -278,11 +290,37 @@ I don't plan to localize the app.
 
 #### [More FAQs…](https://sindresorhus.com/apps/faq)
 
+## Build from source
+
+Requires a full **Xcode** install (16 or newer).
+
+```sh
+git clone https://github.com/Errr0rr404/Plash.git
+cd Plash
+./build.sh run        # build and launch
+```
+
+Other commands:
+
+```sh
+./build.sh            # build only (Debug)
+./build.sh release    # build (Release)
+./build.sh clean      # remove build artifacts
+```
+
+`build.sh` auto-detects your Xcode and shims SwiftLint when it isn't installed. To install into `/Applications`, produce a signed Release build and copy `Plash.app` over — the script header documents the exact steps.
+
 ## Built with
 
 - [Defaults](https://github.com/sindresorhus/Defaults) - Swifty and modern UserDefaults
 - [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - Add user-customizable global keyboard shortcuts to your macOS app
+- [LaunchAtLogin](https://github.com/sindresorhus/LaunchAtLogin-Modern) - Launch-at-login for sandboxed apps
+
+## License
+
+Plash is created by [Sindre Sorhus](https://sindresorhus.com) and released under the [MIT license](license). This fork restores and builds on his last open-source release; all credit for the app itself goes to him.
 
 ## Links
 
-- [More apps by me](https://sindresorhus.com/apps)
+- [Original app](https://sindresorhus.com/plash)
+- [More apps by the original author](https://sindresorhus.com/apps)
