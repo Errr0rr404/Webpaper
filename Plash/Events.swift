@@ -7,24 +7,7 @@ extension AppState {
 			updateMenu()
 		}
 
-		webViewController.didLoadPublisher
-			.convertToResult()
-			.sink { [self] result in
-				switch result {
-				case .success:
-					// Set the persisted zoom level.
-					// This must be here as `webView.url` needs to have been set.
-					let zoomLevel = webViewController.webView.zoomLevelWrapper
-					if zoomLevel != 1 {
-						webViewController.webView.zoomLevelWrapper = zoomLevel
-					}
-
-					statusItemButton.toolTip = WebsitesController.shared.current?.tooltip
-				case .failure(let error):
-					webViewError = error
-				}
-			}
-			.store(in: &cancellables)
+		// Web view load/zoom handling is wired per desktop instance in `wireEvents(for:)` (once per instance, at creation), since there is one web view per display.
 
 		powerSourceWatcher?.didChangePublisher
 			.sink { [self] _ in
@@ -38,6 +21,8 @@ extension AppState {
 
 		SSEvents.deviceDidWake
 			.sink { [self] in
+				// The display setup may have changed during sleep, so reconcile first — without loading the new instances, since the reload below already covers every instance exactly once.
+				updateDesktopInstances(reloadNewInstances: false)
 				reloadWebsite()
 			}
 			.store(in: &cancellables)
@@ -77,7 +62,9 @@ extension AppState {
 
 		Defaults.publisher(.opacity)
 			.sink { [self] change in
-				desktopWindow.alphaValue = isBrowsingMode ? 1 : change.newValue
+				for instance in desktopInstances {
+					instance.window.alphaValue = isBrowsingMode ? 1 : change.newValue
+				}
 			}
 			.store(in: &cancellables)
 
@@ -89,7 +76,22 @@ extension AppState {
 
 		Defaults.publisher(.display, options: [])
 			.sink { [self] change in
-				desktopWindow.targetDisplay = change.newValue
+				// In single-display mode, just move the existing window to avoid a reload. In all-displays mode the chosen display is irrelevant.
+				guard !Defaults[.showOnAllDisplays] else {
+					return
+				}
+
+				if desktopInstances.count == 1 {
+					desktopInstances[0].targetDisplay = change.newValue
+				} else {
+					updateDesktopInstances()
+				}
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.showOnAllDisplays, options: [])
+			.sink { [self] _ in
+				updateDesktopInstances()
 			}
 			.store(in: &cancellables)
 
@@ -101,13 +103,17 @@ extension AppState {
 
 		Defaults.publisher(.showOnAllSpaces)
 			.sink { [self] change in
-				desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+				for instance in desktopInstances {
+					instance.window.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+				}
 			}
 			.store(in: &cancellables)
 
 		Defaults.publisher(.bringBrowsingModeToFront, options: [])
 			.sink { [self] _ in
-				desktopWindow.isInteractive = desktopWindow.isInteractive
+				for instance in desktopInstances {
+					instance.window.isInteractive = instance.window.isInteractive
+				}
 			}
 			.store(in: &cancellables)
 
@@ -115,6 +121,13 @@ extension AppState {
 			.receive(on: DispatchQueue.main)
 			.sink { [self] _ in
 				recreateWebViewAndReload()
+			}
+			.store(in: &cancellables)
+
+		// Reconcile the desktop instances when displays are connected/disconnected while awake (relevant in "Show on all displays" mode, and to follow the main display if the chosen one is unplugged). Wake is handled by the `deviceDidWake` sink above, so we subscribe to screen-parameter changes only (not the merged `NSScreen.publisher`, which also fires on wake) to avoid a duplicate reconcile+reload. `updateDesktopInstances()` preserves unaffected displays, so this is cheap.
+		SSEvents.screenParametersDidChange
+			.sink { [self] in
+				updateDesktopInstances()
 			}
 			.store(in: &cancellables)
 

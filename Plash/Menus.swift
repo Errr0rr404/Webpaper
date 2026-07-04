@@ -93,7 +93,7 @@ extension AppState {
 			// TODO: DRY this up with the one in SSWebView when everything is in SwiftUI.
 			if
 				let website = WebsitesController.shared.current,
-				let url = webViewController.webView.url?.normalized(),
+				let url = primaryInstance?.webViewController.webView.url?.normalized(),
 				website.url.normalized() != url
 			{
 				let menuItem = menu.addCallbackItem("Update Website to Current") {

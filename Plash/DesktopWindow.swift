@@ -45,6 +45,7 @@ final class DesktopWindow: NSWindow {
 		self.backgroundColor = .clear
 		self.level = .desktop
 		self.isRestorable = false
+		self.isReleasedWhenClosed = false // We manage the lifetime ourselves so tearing down instances (e.g. when a display is unplugged) cannot over-release.
 		self.canHide = false
 		self.displaysWhenScreenProfileChanges = true
 		self.collectionBehavior = [
@@ -83,5 +84,44 @@ final class DesktopWindow: NSWindow {
 		}
 
 		setFrame(frame, display: true)
+	}
+}
+
+
+/**
+A single desktop rendering surface: one `DesktopWindow` paired with its own `WebViewController`.
+
+A `WKWebView` can only live in a single window at a time, so multi-display support requires one window *and* one web view per display. `AppState` owns a collection of these, one per target display.
+*/
+@MainActor
+final class DesktopInstance {
+	let webViewController = WebViewController()
+	let window: DesktopWindow
+
+	/**
+	Subscriptions tied to this instance's lifetime (e.g. its web view load events). Released automatically when the instance is torn down, so we never re-subscribe a `WebViewController`'s load publisher — which can terminate on failure and would replay that stale terminal event to a new subscriber.
+	*/
+	var cancellables = Set<AnyCancellable>()
+
+	/**
+	The display this instance renders on. Setting it repositions the window.
+	*/
+	var targetDisplay: Display? {
+		get { window.targetDisplay }
+		set { window.targetDisplay = newValue }
+	}
+
+	init(display: Display?) {
+		window = DesktopWindow(display: display)
+		window.contentView = webViewController.webView
+		window.contentView?.isHidden = true
+	}
+
+	/**
+	Recreate the underlying web view (used when settings that require a fresh configuration change, e.g. mute audio) and reattach it to the window.
+	*/
+	func recreateWebView() {
+		webViewController.recreateWebView()
+		window.contentView = webViewController.webView
 	}
 }

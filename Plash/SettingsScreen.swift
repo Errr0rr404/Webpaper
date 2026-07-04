@@ -30,6 +30,7 @@ private struct GeneralSettings: View {
 				OpacitySetting()
 			}
 			Section {
+				ShowOnAllDisplaysSetting()
 				DisplaySetting()
 				ShowOnAllSpacesSetting()
 			}
@@ -184,9 +185,20 @@ private struct HideMenuBarIconSetting: View {
 	}
 }
 
+private struct ShowOnAllDisplaysSetting: View {
+	var body: some View {
+		Defaults.Toggle(
+			"Show on all displays",
+			key: .showOnAllDisplays
+		)
+		.help("Show the website on every connected display. While disabled, it only shows on the display selected below.")
+	}
+}
+
 private struct DisplaySetting: View {
 	@ObservedObject private var displayWrapper = Display.observable
 	@Default(.display) private var chosenDisplay
+	@Default(.showOnAllDisplays) private var showOnAllDisplays
 
 	var body: some View {
 		Picker(
@@ -202,8 +214,8 @@ private struct DisplaySetting: View {
 			}
 		} label: {
 			Text("Show on")
-			Link("Multi-display support ›", destination: "https://github.com/sindresorhus/Plash/issues/2")
 		}
+		.disabled(showOnAllDisplays)
 		.task(id: chosenDisplay) {
 			guard chosenDisplay == nil else {
 				return
@@ -223,7 +235,8 @@ private struct ClearWebsiteDataSetting: View {
 			Task {
 				hasCleared = true
 				WebsitesController.shared.thumbnailCache.removeAllImages()
-				await AppState.shared.webViewController.webView.clearWebsiteData()
+				// Website data lives in the shared default data store, so clearing it via any one web view clears it for all displays.
+				await AppState.shared.primaryInstance?.webViewController.webView.clearWebsiteData()
 			}
 		}
 		.help("Clears all cookies, local storage, caches, etc.")
