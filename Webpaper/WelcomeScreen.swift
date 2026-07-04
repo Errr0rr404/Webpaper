@@ -12,11 +12,11 @@ extension AppState {
 			title: "Welcome to Webpaper!",
 			message:
 				"""
-				Webpaper lives in the menu bar (droplet icon at the top-right of the screen). Click it and then select “Add Website…” to get started.
+				Webpaper lives in the menu bar (the icon at the top-right of the screen). Click it and then select “Add Website…” to get started.
 
 				Use “Browsing Mode” if you need to log into a website or interact with it in some way.
 
-				Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on.
+				Tip: You can show the website on every display, and even set a different website per display, from Settings → General.
 				""",
 			buttonTitles: [
 				"Continue"

@@ -60,7 +60,7 @@ final class WebViewController: NSViewController {
 				}
 
 				// Namespace by path so navigating to a different same-origin page doesn't restore a stale offset.
-				const key = '__plashScrollPosition__:' + location.pathname + location.search;
+				const key = '__webpaperScrollPosition__:' + location.pathname + location.search;
 
 				const read = () => {
 					try {

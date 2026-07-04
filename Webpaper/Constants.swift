@@ -33,7 +33,7 @@ extension Defaults.Keys {
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 	static let muteAudio = Key<Bool>("muteAudio", default: true)
 
-	static let extendPlashBelowMenuBar = Key<Bool>("extendPlashBelowMenuBar", default: false)
+	static let extendWebpaperBelowMenuBar = Key<Bool>("extendWebpaperBelowMenuBar", default: false)
 }
 
 extension KeyboardShortcuts.Name {

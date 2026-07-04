@@ -246,7 +246,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1250;
 				LastUpgradeCheck = 1630;
-				ORGANIZATIONNAME = "Sindre Sorhus";
+				ORGANIZATIONNAME = Webpaper;
 				TargetAttributes = {
 					E324212F2384E9D700D28A91 = {
 						CreatedOnToolsVersion = 11.2.1;

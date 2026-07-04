@@ -63,7 +63,7 @@ final class DesktopWindow: NSWindow {
 			}
 			.store(in: &cancellables)
 
-		Defaults.publisher(.extendPlashBelowMenuBar)
+		Defaults.publisher(.extendWebpaperBelowMenuBar)
 			.sink { [weak self] _ in
 				self?.setFrame()
 			}
@@ -79,7 +79,7 @@ final class DesktopWindow: NSWindow {
 		var frame = screen.frameWithoutStatusBar
 		frame.size.height += 1 // Probably not needed, but just to ensure it covers all the way up to the menu bar on older Macs (I can only test on M1 Mac)
 
-		if Defaults[.extendPlashBelowMenuBar] {
+		if Defaults[.extendWebpaperBelowMenuBar] {
 			frame = screen.frame
 		}
 
