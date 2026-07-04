@@ -176,7 +176,10 @@ final class AppState: ObservableObject {
 	}
 
 	func loadUserURL() {
-		loadURL(WebsitesController.shared.current?.url)
+		// Each display shows its assigned website (or the current one), resolved per instance.
+		reloadInstances { instance in
+			WebsitesController.shared.website(forDisplay: instance.targetDisplay)?.url
+		}
 	}
 
 	func toggleBrowsingMode() {
@@ -184,25 +187,32 @@ final class AppState: ObservableObject {
 	}
 
 	func loadURL(_ url: URL?) {
+		// Mirror the same URL to every display (used for programmatic loads, e.g. `about:blank` on disable, and URL commands).
+		reloadInstances { _ in url }
+	}
+
+	/**
+	Reload every instance, resolving the URL to load per instance. Resets the error state and fades the web views back in once loaded.
+	*/
+	private func reloadInstances(_ url: (DesktopInstance) -> URL?) {
 		webViewError = nil
 
-		guard
-			let url,
-			url.isValid
-		else {
-			return
-		}
-
-		// Each display gets its own web view, and the `[[screenWidth]]`/`[[screenHeight]]` placeholders resolve to that display's dimensions.
 		for instance in desktopInstances {
-			load(url, into: instance)
+			guard
+				let instanceURL = url(instance),
+				instanceURL.isValid
+			else {
+				continue
+			}
+
+			// The `[[screenWidth]]`/`[[screenHeight]]` placeholders resolve to each display's own dimensions inside `load(_:into:)`.
+			load(instanceURL, into: instance)
 		}
 
 		// TODO: Add a callback to `loadURL` when it's done loading instead.
-		// TODO: Fade in the web view.
 		delay(.seconds(1)) { [self] in
 			for instance in desktopInstances {
-				instance.window.contentView?.isHidden = false
+				instance.revealWebView()
 			}
 		}
 	}
@@ -296,13 +306,28 @@ final class AppState: ObservableObject {
 
 		applyStateToDesktopInstances()
 
-		if
-			reloadNewInstances,
-			isEnabled,
-			let url = WebsitesController.shared.current?.url
-		{
+		if reloadNewInstances, isEnabled {
+			var loaded = [DesktopInstance]()
+
 			for instance in created {
+				guard
+					let url = WebsitesController.shared.website(forDisplay: instance.targetDisplay)?.url,
+					url.isValid
+				else {
+					continue
+				}
+
 				load(url, into: instance)
+				loaded.append(instance)
+			}
+
+			// Fade the freshly-loaded instances in once their content has had a moment to load (matching `reloadInstances`). Without this, an instance created outside a full reload — e.g. a display connected during sleep with "Reload when the computer wakes" off — would stay at `alphaValue` 0 and render blank.
+			if !loaded.isEmpty {
+				delay(.seconds(1)) {
+					for instance in loaded {
+						instance.revealWebView()
+					}
+				}
 			}
 		}
 	}

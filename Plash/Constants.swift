@@ -24,7 +24,10 @@ extension Defaults.Keys {
 	static let reloadInterval = Key<Double?>("reloadInterval")
 	static let display = Key<Display?>("display")
 	static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
+	// Maps a display's persistent UUID (as a string) to a website's UUID (as a string). Lets each display show a different website in "Show on all displays" mode.
+	static let displayWebsites = Key<[String: String]>("displayWebsites", default: [:])
 	static let deactivateOnBattery = Key<Bool>("deactivateOnBattery", default: false)
+	static let reloadOnWake = Key<Bool>("reloadOnWake", default: true)
 	static let showOnAllSpaces = Key<Bool>("showOnAllSpaces", default: false)
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)

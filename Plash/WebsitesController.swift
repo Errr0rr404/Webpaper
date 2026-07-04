@@ -42,6 +42,25 @@ final class WebsitesController {
 		}
 	}
 
+	/**
+	The website that should be shown on the given display.
+
+	In "Show on all displays" mode, each display can be assigned its own website (persisted in `Defaults[.displayWebsites]`). Falls back to the current website when the display has no assignment or the assigned website no longer exists.
+	*/
+	func website(forDisplay display: Display?) -> Website? {
+		guard
+			Defaults[.showOnAllDisplays],
+			let display,
+			let idString = Defaults[.displayWebsites][display.id.uuidString],
+			let id = UUID(uuidString: idString),
+			let website = all.first(where: { $0.id == id })
+		else {
+			return current
+		}
+
+		return website
+	}
+
 	let allBinding = Defaults.bindingCollection(for: .websites)
 
 	private init() {

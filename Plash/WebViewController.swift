@@ -8,6 +8,11 @@ final class WebViewController: NSViewController {
 	private var currentDownloadFile: URL?
 
 	/**
+	The display this web view renders on. Determines which website's configuration (custom CSS/JS, color inversion, print styles, self-signed-cert allowance) to apply in "Show on all displays" mode. Set before the web view is first created.
+	*/
+	var targetDisplay: Display?
+
+	/**
 	Publishes when the web view finishes loading a page.
 	*/
 	lazy var didLoadPublisher = didLoadSubject.eraseToAnyPublisher()
@@ -45,7 +50,57 @@ final class WebViewController: NSViewController {
 
 		userContentController.addJavaScript("document.documentElement.classList.add('is-plash-app')")
 
-		if let website = WebsitesController.shared.current {
+		// Retain the scroll position across reloads (issue #39). The position is stored per page in `sessionStorage`, which persists across same-page reloads within the web view but is cleared when navigating to a different site.
+		userContentController.addJavaScript(
+			"""
+			(() => {
+				// Only the top document participates. This script is injected into every frame, and all same-origin frames share one `sessionStorage`, so without this guard an iframe's scroll would clobber the main page's saved position.
+				if (window.top !== window.self) {
+					return;
+				}
+
+				// Namespace by path so navigating to a different same-origin page doesn't restore a stale offset.
+				const key = '__plashScrollPosition__:' + location.pathname + location.search;
+
+				const read = () => {
+					try {
+						return sessionStorage.getItem(key);
+					} catch (error) {
+						return null;
+					}
+				};
+
+				const write = (value) => {
+					try {
+						sessionStorage.setItem(key, value);
+					} catch (error) {}
+				};
+
+				try {
+					history.scrollRestoration = 'manual';
+				} catch (error) {}
+
+				const restore = () => {
+					const saved = read();
+					if (saved !== null) {
+						window.scrollTo(0, parseFloat(saved) || 0);
+					}
+				};
+
+				if (document.readyState === 'complete') {
+					restore();
+				} else {
+					window.addEventListener('load', restore);
+				}
+
+				window.addEventListener('scroll', () => {
+					write(String(window.scrollY));
+				}, { passive: true });
+			})();
+			"""
+		)
+
+		if let website = WebsitesController.shared.website(forDisplay: targetDisplay) {
 			if website.invertColors2 != .never {
 				userContentController.invertColors(
 					onlyWhenInDarkMode: website.invertColors2 == .darkMode
@@ -194,7 +249,7 @@ extension WebViewController: WKNavigationDelegate {
 		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
 		await webView.defaultAuthChallengeHandler(
 			challenge: challenge,
-			allowSelfSignedCertificate: WebsitesController.shared.current?.allowSelfSignedCertificate ?? false
+			allowSelfSignedCertificate: WebsitesController.shared.website(forDisplay: targetDisplay)?.allowSelfSignedCertificate ?? false
 		)
 	}
 

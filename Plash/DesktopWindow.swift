@@ -108,13 +108,18 @@ final class DesktopInstance {
 	*/
 	var targetDisplay: Display? {
 		get { window.targetDisplay }
-		set { window.targetDisplay = newValue }
+		set {
+			window.targetDisplay = newValue
+			webViewController.targetDisplay = newValue
+		}
 	}
 
 	init(display: Display?) {
 		window = DesktopWindow(display: display)
+		// Set before the web view is first created (below), so it configures against the right per-display website.
+		webViewController.targetDisplay = display
 		window.contentView = webViewController.webView
-		window.contentView?.isHidden = true
+		hideWebView()
 	}
 
 	/**
@@ -123,5 +128,31 @@ final class DesktopInstance {
 	func recreateWebView() {
 		webViewController.recreateWebView()
 		window.contentView = webViewController.webView
+		hideWebView()
+	}
+
+	/**
+	Hide the web view instantly, before its content has loaded.
+	*/
+	func hideWebView() {
+		window.contentView?.alphaValue = 0
+	}
+
+	/**
+	Fade the web view in once its content has loaded — a smooth reveal instead of an abrupt appearance (issue #9). A no-op if it's already visible, so routine reloads don't re-fade.
+	*/
+	func revealWebView() {
+		guard
+			let contentView = window.contentView,
+			contentView.alphaValue < 1
+		else {
+			return
+		}
+
+		NSAnimationContext.runAnimationGroup {
+			$0.duration = 0.6
+			$0.allowsImplicitAnimation = true
+			contentView.animator().alphaValue = 1
+		}
 	}
 }

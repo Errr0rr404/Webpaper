@@ -34,7 +34,48 @@ private struct GeneralSettings: View {
 				DisplaySetting()
 				ShowOnAllSpacesSetting()
 			}
+			PerDisplayWebsitesSetting()
 		}
+	}
+}
+
+private struct PerDisplayWebsitesSetting: View {
+	@ObservedObject private var displayWrapper = Display.observable
+	@Default(.showOnAllDisplays) private var showOnAllDisplays
+	@Default(.displayWebsites) private var displayWebsites
+	@Default(.websites) private var websites
+
+	var body: some View {
+		// Only relevant when mirroring to all displays and there's more than one website to choose from.
+		if showOnAllDisplays, websites.count > 1 {
+			Section {
+				ForEach(displayWrapper.wrappedValue.all) { display in
+					Picker(display.localizedName, selection: binding(for: display)) {
+						Text("Current website").tag(String?.none)
+						ForEach(websites) { website in
+							Text(website.menuTitle).tag(String?.some(website.id.uuidString))
+						}
+					}
+				}
+			} header: {
+				Text("Website per display")
+			} footer: {
+				Text("Choose a specific website for each display, or “Current website” to follow the menu bar selection.")
+			}
+		}
+	}
+
+	private func binding(for display: Display) -> Binding<String?> {
+		Binding(
+			get: { displayWebsites[display.id.uuidString] },
+			set: { newValue in
+				if let newValue {
+					displayWebsites[display.id.uuidString] = newValue
+				} else {
+					displayWebsites.removeValue(forKey: display.id.uuidString)
+				}
+			}
+		)
 	}
 }
 
@@ -60,6 +101,8 @@ private struct AdvancedSettings: View {
 				OpenExternalLinksInBrowserSetting()
 				HideMenuBarIconSetting()
 				Defaults.Toggle("Mute audio", key: .muteAudio)
+				Defaults.Toggle("Reload when the computer wakes", key: .reloadOnWake)
+					.help("Reload the website when the computer wakes from sleep. Disable this to keep the page state across sleep.")
 			}
 			Section {} // Padding
 			Section {} footer: {

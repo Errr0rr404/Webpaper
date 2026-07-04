@@ -21,9 +21,15 @@ extension AppState {
 
 		SSEvents.deviceDidWake
 			.sink { [self] in
-				// The display setup may have changed during sleep, so reconcile first — without loading the new instances, since the reload below already covers every instance exactly once.
-				updateDesktopInstances(reloadNewInstances: false)
-				reloadWebsite()
+				// The display setup may have changed during sleep, so reconcile first.
+				if Defaults[.reloadOnWake] {
+					// Reconcile without loading new instances, since the reload below already covers every instance exactly once.
+					updateDesktopInstances(reloadNewInstances: false)
+					reloadWebsite()
+				} else {
+					// Don't refresh existing content on wake; only load any newly-connected display.
+					updateDesktopInstances(reloadNewInstances: true)
+				}
 			}
 			.store(in: &cancellables)
 
@@ -92,6 +98,13 @@ extension AppState {
 		Defaults.publisher(.showOnAllDisplays, options: [])
 			.sink { [self] _ in
 				updateDesktopInstances()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.displayWebsites, options: [])
+			.sink { [self] _ in
+				// A display's assigned website changed. Recreate the web views so each picks up its assigned website's configuration (custom CSS/JS, color inversion, print styles, self-signed-cert allowance), then reload — consistent with the `.websites`/`.muteAudio` handlers.
+				recreateWebViewAndReload()
 			}
 			.store(in: &cancellables)
 
