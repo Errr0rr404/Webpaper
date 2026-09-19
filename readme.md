@@ -7,7 +7,7 @@
 Webpaper keeps a live page behind your windows: a calendar, a dashboard, a photo of the day, or a site you host yourself. The Mac app lives in `mac`. The Windows app lives in `win`.
 
 <p align="center">
-	<video src="https://github.com/user-attachments/assets/51f9f768-11ed-4bf3-89fc-cf68a5ed7e05" width="800" autoplay loop muted playsinline></video>
+	<video src="https://github.com/user-attachments/assets/77cbda82-52da-4069-a825-f5f8047b92c0" width="800" autoplay loop muted playsinline></video>
 </p>
 
 ## Download
