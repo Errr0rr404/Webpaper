@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:;">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Webpaper</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<header class="top">
+		<img src="../assets/icon.png" width="40" height="40" alt="">
+		<div class="titles">
+			<h1>Webpaper</h1>
+			<p id="status"></p>
+		</div>
+		<button type="button" id="preview" class="ghost">Preview</button>
+	</header>
+
+	<div class="toolbar">
+		<label class="switch"><input type="checkbox" id="enabled"><span>Enabled</span></label>
+		<label class="switch"><input type="checkbox" id="browsing"><span>Browsing mode</span></label>
+		<button type="button" id="reload" class="ghost">Reload</button>
+		<button type="button" id="previous" class="ghost">Previous</button>
+		<button type="button" id="next" class="ghost">Next</button>
+	</div>
+
+	<nav class="tabs">
+		<button type="button" data-tab="sites" class="on">Websites</button>
+		<button type="button" data-tab="settings">Settings</button>
+	</nav>
+
+	<div id="sites" class="pane">
+		<aside>
+			<ul id="site-list"></ul>
+			<form id="add-form">
+				<label>
+					Address
+					<input id="url" name="url" type="url" placeholder="https://example.com" autocomplete="off" required>
+				</label>
+				<label>
+					Title
+					<input id="title" name="title" type="text" placeholder="Optional" autocomplete="off">
+				</label>
+				<div class="row">
+					<button type="submit">Add website</button>
+					<button type="button" id="local-folder" class="ghost">Local folder…</button>
+				</div>
+				<p id="form-error" class="error" hidden></p>
+			</form>
+		</aside>
+		<section id="editor" class="editor">
+			<p class="empty">Add a page — a calendar, a dashboard, a photo of the day — and it stays behind your windows.</p>
+		</section>
+	</div>
+
+	<div id="settings" class="pane settings" hidden></div>
+
+	<script src="app.js"></script>
+</body>
+</html>

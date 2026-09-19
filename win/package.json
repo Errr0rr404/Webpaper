@@ -1,0 +1,44 @@
+{
+  "name": "webpaper",
+  "version": "1.0.0",
+  "description": "Put any website on your Windows desktop.",
+  "main": "src/main.js",
+  "author": "Webpaper contributors",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/logic.test.js",
+    "dist": "electron-builder --win zip --x64 --arm64",
+    "dist:setup": "electron-builder --win nsis --x64 --arm64"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.worldofz.Webpaper",
+    "productName": "Webpaper",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "src/attach.ps1"
+    ],
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    }
+  }
+}

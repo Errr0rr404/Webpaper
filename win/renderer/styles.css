@@ -1,0 +1,224 @@
+:root {
+	color-scheme: light;
+	--ink: #1c2430;
+	--muted: #5e6872;
+	--cream: #f6f1ea;
+	--paper: #fffdf9;
+	--line: #e3d9ce;
+	--coral: #e07a4c;
+	--coral-deep: #c45c32;
+	--shadow: 0 1px 0 rgb(28 36 48 / 4%);
+	font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+	margin: 0;
+	height: 100%;
+	background: var(--cream);
+	color: var(--ink);
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+button, input, select, textarea {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	border: 0;
+	border-radius: 8px;
+	background: var(--coral);
+	color: white;
+	padding: 8px 12px;
+	cursor: pointer;
+}
+
+button:hover { background: var(--coral-deep); }
+
+button.ghost {
+	background: transparent;
+	color: var(--ink);
+	border: 1px solid var(--line);
+}
+
+button.ghost:hover { background: rgb(224 122 76 / 10%); }
+
+button.danger {
+	background: transparent;
+	color: #9d2c2c;
+	border: 1px solid #e7c4c4;
+}
+
+.top {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 18px 8px;
+}
+
+.top img { border-radius: 10px; }
+
+.titles { flex: 1; min-width: 0; }
+
+h1 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+}
+
+#status {
+	margin: 2px 0 0;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.toolbar, .tabs {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 0 18px 10px;
+}
+
+.tabs { padding-bottom: 0; }
+
+.tabs button {
+	background: transparent;
+	color: var(--muted);
+	border-radius: 0;
+	border-bottom: 2px solid transparent;
+	padding: 8px 2px;
+}
+
+.tabs button.on {
+	color: var(--ink);
+	border-bottom-color: var(--coral);
+}
+
+.switch {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+}
+
+.pane {
+	flex: 1;
+	min-height: 0;
+	margin: 12px;
+	background: var(--paper);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	box-shadow: var(--shadow);
+	overflow: auto;
+}
+
+#sites {
+	display: grid;
+	grid-template-columns: 280px 1fr;
+}
+
+aside {
+	border-right: 1px solid var(--line);
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+#site-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-height: 80px;
+}
+
+#site-list button.site {
+	width: 100%;
+	text-align: left;
+	background: transparent;
+	color: var(--ink);
+	border: 1px solid transparent;
+	border-radius: 8px;
+	padding: 8px 10px;
+}
+
+#site-list button.site small {
+	display: block;
+	color: var(--muted);
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#site-list button.site.selected { background: #f8efe8; border-color: #f0d8c8; }
+#site-list button.site.current { box-shadow: inset 3px 0 0 var(--coral); }
+
+form, .editor, .settings { display: flex; flex-direction: column; gap: 10px; }
+
+[hidden] { display: none !important; }
+
+label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+
+label.switch, label.setting {
+	flex-direction: row;
+	align-items: center;
+	color: var(--ink);
+	font-size: 14px;
+}
+
+input, select, textarea {
+	border: 1px solid var(--line);
+	background: white;
+	border-radius: 8px;
+	padding: 8px 10px;
+	color: var(--ink);
+}
+
+textarea { min-height: 88px; resize: vertical; font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.error { color: #9d2c2c; margin: 0; font-size: 12px; }
+
+.editor, .settings { padding: 16px 18px 20px; }
+
+.empty { color: var(--muted); margin: 8px; line-height: 1.5; }
+
+.setting {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--line);
+	font-size: 14px;
+	color: var(--ink);
+}
+
+.setting span { color: var(--ink); font-size: 14px; }
+
+.hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+h2 { margin: 8px 0 0; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+.shortcut { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; }
+
+.shortcut code {
+	background: var(--cream);
+	border-radius: 6px;
+	padding: 4px 8px;
+	min-width: 88px;
+	text-align: center;
+}
