@@ -1,0 +1,211 @@
+import Cocoa
+import KeyboardShortcuts
+
+extension AppState {
+	func setUpEvents() {
+		menu.onUpdate = { [self] in
+			updateMenu()
+		}
+
+		// Web view load/zoom handling is wired per desktop instance in `wireEvents(for:)` (once per instance, at creation), since there is one web view per display.
+
+		powerSourceWatcher?.didChangePublisher
+			.sink { [self] _ in
+				guard Defaults[.deactivateOnBattery] else {
+					return
+				}
+
+				setEnabledStatus()
+			}
+			.store(in: &cancellables)
+
+		SSEvents.deviceDidWake
+			.sink { [self] in
+				// The display setup may have changed during sleep, so reconcile first.
+				if Defaults[.reloadOnWake] {
+					// Reconcile without loading new instances, since the reload below already covers every instance exactly once.
+					updateDesktopInstances(reloadNewInstances: false)
+					reloadWebsite()
+				} else {
+					// Don't refresh existing content on wake; only load any newly-connected display.
+					updateDesktopInstances(reloadNewInstances: true)
+				}
+			}
+			.store(in: &cancellables)
+
+		SSEvents.isScreenLocked
+			.sink { [self] in
+				isScreenLocked = $0
+				setEnabledStatus()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.websites, options: [])
+			.receive(on: DispatchQueue.main)
+			.sink { [self] change in
+				// We never destroy the webview, so we have to make sure it's not in browsing mode when there are no websites.
+				if change.newValue.isEmpty {
+					Defaults[.isBrowsingMode] = false
+				}
+
+				// Title-only edits used to recreate every web view. Reload only when the page itself would change.
+				guard wallpaperInputsChanged(from: change.oldValue, to: change.newValue) else {
+					return
+				}
+
+				resetTimer()
+				recreateWebViewAndReload()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.isBrowsingMode)
+			.receive(on: DispatchQueue.main)
+			.sink { [self] change in
+				isBrowsingMode = change.newValue
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.hideMenuBarIcon)
+			.sink { [self] _ in
+				handleMenuBarIcon()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.opacity)
+			.sink { [self] change in
+				for instance in desktopInstances {
+					instance.window.alphaValue = isBrowsingMode ? 1 : change.newValue
+				}
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.reloadInterval)
+			.sink { [self] _ in
+				resetTimer()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.display, options: [])
+			.sink { [self] change in
+				// In single-display mode, just move the existing window to avoid a reload. In all-displays mode the chosen display is irrelevant.
+				guard !Defaults[.showOnAllDisplays] else {
+					return
+				}
+
+				if desktopInstances.count == 1 {
+					desktopInstances[0].targetDisplay = change.newValue?.withFallbackToMain
+					// Reload so `[[screenWidth]]` / `[[screenHeight]]` match the display that was just chosen.
+					if isEnabled {
+						loadUserURL()
+					}
+				} else {
+					updateDesktopInstances()
+				}
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.showOnAllDisplays, options: [])
+			.sink { [self] _ in
+				updateDesktopInstances()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.displayWebsites, options: [])
+			.sink { [self] _ in
+				// A display's assigned website changed. Recreate the web views so each picks up its assigned website's configuration (custom CSS/JS, color inversion, print styles, self-signed-cert allowance), then reload — consistent with the `.websites`/`.muteAudio` handlers.
+				recreateWebViewAndReload()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.deactivateOnBattery)
+			.sink { [self] _ in
+				setEnabledStatus()
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.showOnAllSpaces)
+			.sink { [self] change in
+				for instance in desktopInstances {
+					instance.window.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+				}
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.bringBrowsingModeToFront, options: [])
+			.sink { [self] _ in
+				for instance in desktopInstances {
+					instance.window.isInteractive = instance.window.isInteractive
+				}
+			}
+			.store(in: &cancellables)
+
+		Defaults.publisher(.muteAudio, options: [])
+			.receive(on: DispatchQueue.main)
+			.sink { [self] _ in
+				recreateWebViewAndReload()
+			}
+			.store(in: &cancellables)
+
+		// Reconcile the desktop instances when displays are connected/disconnected while awake (relevant in "Show on all displays" mode, and to follow the main display if the chosen one is unplugged). Wake is handled by the `deviceDidWake` sink above, so we subscribe to screen-parameter changes only (not the merged `NSScreen.publisher`, which also fires on wake) to avoid a duplicate reconcile+reload. `updateDesktopInstances()` preserves unaffected displays, so this is cheap.
+		SSEvents.screenParametersDidChange
+			.sink { [self] in
+				updateDesktopInstances()
+			}
+			.store(in: &cancellables)
+
+		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
+			Defaults[.isBrowsingMode].toggle()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .toggleEnabled) { [self] in
+			isManuallyDisabled.toggle()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in
+			reloadWebsite()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .nextWebsite) {
+			WebsitesController.shared.makeNextCurrent()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .previousWebsite) {
+			WebsitesController.shared.makePreviousCurrent()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .randomWebsite) {
+			WebsitesController.shared.makeRandomCurrent()
+		}
+	}
+}
+
+/// True when a websites-list edit would change what is rendered. Title-only edits return false.
+private func wallpaperInputsChanged(from old: [Website], to new: [Website]) -> Bool {
+	struct Input: Equatable {
+		let id: UUID
+		let isCurrent: Bool
+		let url: String
+		let css: String
+		let javaScript: String
+		let invertColors: String
+		let usePrintStyles: Bool
+		let allowSelfSignedCertificate: Bool
+	}
+
+	func inputs(_ websites: [Website]) -> [Input] {
+		websites.map {
+			Input(
+				id: $0.id,
+				isCurrent: $0.isCurrent,
+				url: $0.url.absoluteString,
+				css: $0.css,
+				javaScript: $0.javaScript,
+				invertColors: $0.invertColors2.rawValue,
+				usePrintStyles: $0.usePrintStyles,
+				allowSelfSignedCertificate: $0.allowSelfSignedCertificate
+			)
+		}
+	}
+
+	return inputs(old) != inputs(new)
+}

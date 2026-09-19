@@ -1,0 +1,4 @@
+xcuserdata/
+.build-dd/
+.build-release/
+.DS_Store
